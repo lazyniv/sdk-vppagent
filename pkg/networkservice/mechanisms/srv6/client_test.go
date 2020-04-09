@@ -17,6 +17,7 @@
 package srv6_test
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 
