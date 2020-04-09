@@ -87,9 +87,6 @@ func TestSrv6Client(t *testing.T) {
 				assert.Equal(t, expectedVppConfigRoutes(parameters), vppConfig.Routes)
 				assert.Equal(t, expectedVppConfigArps(parameters), vppConfig.Arps)
 			}
-
-			//conf = vppagent.Config(vppagent.WithConfig(context.Background()))
-			//vppOnReturnCheck(t, conf)
 		},
 		func(t *testing.T, ctx context.Context) {},
 		testRequest,
