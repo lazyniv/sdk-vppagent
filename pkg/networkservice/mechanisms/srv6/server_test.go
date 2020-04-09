@@ -72,7 +72,7 @@ func TestSrv6Server(t *testing.T) {
 			assert.Equal(t, expectedVppConfigSrv6Policies(parameters), vppConfig.Srv6Policies)
 			assert.Equal(t, expectedVppConfigSrv6Steerings(testRequest, parameters, localInterfaceName), vppConfig.Srv6Steerings)
 
-			// Make sure that the Request invokes the appendInterfaceConfig function
+			// Make sure that the Request invokes the appendInterfaceConfig function with connect=true
 			if len(vppConfig.Vrfs) == 1 {
 				assert.Equal(t, expectedVppConfigVrfs(), vppConfig.Vrfs)
 				assert.Equal(t, expectedVppConfigRoutes(parameters), vppConfig.Routes)

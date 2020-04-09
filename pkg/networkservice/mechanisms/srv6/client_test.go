@@ -24,12 +24,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"go.ligato.io/vpp-agent/v3/proto/ligato/configurator"
 
-	"github.com/networkservicemesh/sdk-vppagent/pkg/networkservice/mechanisms/checkvppagentmechanism"
 	"github.com/networkservicemesh/sdk-vppagent/pkg/networkservice/mechanisms/srv6"
 	"github.com/networkservicemesh/sdk-vppagent/pkg/networkservice/utils/checks/testinterfaceappender"
+	"github.com/networkservicemesh/sdk-vppagent/pkg/networkservice/vppagent"
 
+	"github.com/networkservicemesh/sdk/pkg/networkservice/common/mechanisms/checkmechanism"
 	"github.com/networkservicemesh/sdk/pkg/networkservice/core/next"
 
 	"github.com/networkservicemesh/api/pkg/api/networkservice"
@@ -53,14 +53,21 @@ func TestSrv6Client(t *testing.T) {
 		srv6.NewClient(),
 	)
 	testConnToClose := testRequest.GetConnection()
-	suite.Run(t, checkvppagentmechanism.NewClientSuite(
+	suite.Run(t, checkmechanism.NewClientSuite(
 		c,
+		vppagent.WithConfig,
 		srv6_mechanism.MECHANISM,
 		func(t *testing.T, mechanism *networkservice.Mechanism) {
 			m := srv6_mechanism.ToMechanism(mechanism)
 			require.NotNil(t, m)
 		},
-		func(t *testing.T, conf *configurator.Config) { // Check the vppConfig
+		func(t *testing.T, ctx context.Context) {
+			conf := vppagent.Config(ctx)
+			require.NotNil(t, conf)
+			require.NotNil(t, conf.GetVppConfig())
+			require.NotNil(t, conf.GetLinuxConfig())
+			require.NotNil(t, conf.GetNetallocConfig())
+
 			// Basic Checks
 			vppConfig := conf.GetVppConfig()
 			vppInterfaces := vppConfig.GetInterfaces()
@@ -73,13 +80,17 @@ func TestSrv6Client(t *testing.T) {
 			assert.Equal(t, expectedVppConfigSrv6Policies(parameters), vppConfig.Srv6Policies)
 			assert.Equal(t, expectedVppConfigSrv6Steerings(testRequest, parameters, localInterfaceName), vppConfig.Srv6Steerings)
 
-			// Make sure that the Request invokes the appendInterfaceConfig function
+			// Make sure that the Request invokes the appendInterfaceConfig function with connect=true
 			if len(vppConfig.Vrfs) == 1 {
 				assert.Equal(t, expectedVppConfigVrfs(), vppConfig.Vrfs)
 				assert.Equal(t, expectedVppConfigRoutes(parameters), vppConfig.Routes)
 				assert.Equal(t, expectedVppConfigArps(parameters), vppConfig.Arps)
 			}
+
+			//conf = vppagent.Config(vppagent.WithConfig(context.Background()))
+			//vppOnReturnCheck(t, conf)
 		},
+		func(t *testing.T, ctx context.Context) {},
 		testRequest,
 		testConnToClose,
 	))
