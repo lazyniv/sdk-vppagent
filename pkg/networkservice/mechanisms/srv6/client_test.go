@@ -72,7 +72,7 @@ func TestSrv6Client(t *testing.T) {
 			// Basic Checks
 			vppConfig := conf.GetVppConfig()
 			vppInterfaces := vppConfig.GetInterfaces()
-			require.Greater(t, len(vppInterfaces), 0)
+			require.Len(t, vppInterfaces, 1)
 			vppInterface := vppInterfaces[len(vppInterfaces)-1]
 			assert.NotNil(t, vppInterface)
 
@@ -81,7 +81,10 @@ func TestSrv6Client(t *testing.T) {
 			assert.Equal(t, expectedVppConfigSrv6Policies(parameters), vppConfig.Srv6Policies)
 			assert.Equal(t, expectedVppConfigSrv6Steerings(testRequest, parameters, localInterfaceName), vppConfig.Srv6Steerings)
 
-			// Make sure that the Request invokes the appendInterfaceConfig function with connect=true
+			// Make sure who invokes the appendInterfaceConfig function:
+			//   Request(...) with connect=true
+			// or
+			//   Close(...) with connect=false
 			if len(vppConfig.Vrfs) == 1 {
 				assert.Equal(t, expectedVppConfigVrfs(), vppConfig.Vrfs)
 				assert.Equal(t, expectedVppConfigRoutes(parameters), vppConfig.Routes)
